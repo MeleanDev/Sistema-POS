@@ -42,9 +42,14 @@ Route::middleware('auth')->group(function () {
 
         // Punto de Venta
         Route::controller(PuntoVentaController::class)->group(function () {
-            Route::get('PuntoVenta/Consulta/{codigo}', 'index')->name('puntoVenta');
+            Route::get('PuntoVenta/CajaVentas/{codigo}', 'index')->name('puntoVenta');
             Route::get('PuntoVenta/Cedulas', 'cedula')->name('puntoVenta.cedula');
             Route::get('PuntoVenta/DatosCLiente/{cedula?}', 'datosCLiente')->name('puntoVenta.consultaDatoCliente');
+            Route::post('PuntoVenta/ActualizarPago', 'actualizarPago')->name('puntoVenta.actualizarPago');
+            Route::get('PuntoVenta/Productos', 'productosFactura')->name('puntoVenta.consultaProductosF');
+            Route::post('PuntoVenta/Productos', 'agregarProducF')->name('puntoVenta.agregarProducF');
+            Route::delete('PuntoVenta/Productos/{id?}', 'eliminarProducF')->name('puntoVenta.eliminarProducF');
+
         });
 
         // Analisis Comercio

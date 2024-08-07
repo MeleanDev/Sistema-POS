@@ -115,7 +115,7 @@
                     data: 'estado',
                     name: 'estado',
                     className: 'text-center',
-                    render: function(data, type, row) {
+                    render: function(data, type, row, meta) {
                         if (row.estado == "Activa") {
                             return '<a href="'+row.ruta+'" target="_blank" class="badge badge-sm bg-gradient-info">Realizar Ventas</a>';
                         } else {
