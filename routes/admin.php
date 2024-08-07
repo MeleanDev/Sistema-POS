@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
         Route::controller(PuntoVentaController::class)->group(function () {
             Route::get('PuntoVenta/CajaVentas/{codigo}', 'index')->name('puntoVenta');
             Route::get('PuntoVenta/Cedulas', 'cedula')->name('puntoVenta.cedula');
+            Route::get('PuntoVenta/MontoPago', 'montoPagos')->name('puntoVenta.montoPago');
             Route::get('PuntoVenta/DatosCLiente/{cedula?}', 'datosCLiente')->name('puntoVenta.consultaDatoCliente');
             Route::post('PuntoVenta/ActualizarPago', 'actualizarPago')->name('puntoVenta.actualizarPago');
             Route::get('PuntoVenta/Productos', 'productosFactura')->name('puntoVenta.consultaProductosF');

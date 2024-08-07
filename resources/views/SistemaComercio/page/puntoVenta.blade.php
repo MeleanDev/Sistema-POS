@@ -134,20 +134,19 @@
                                         </div>
                                         {{-- Factura --}}
                                         <div class="col">
-                                            <h4 class="text-white">Factura:</h4>
+                                            <h4 class="text-white">Factura: BS</h4>
                                             <p class="text-white" id="facturaCod"></p>
                                             <p class="text-white" id="pagoTotal"></p>
                                             <p class="text-white" id="pagoImpuesto"></p>
                                             <p class="text-white" id="pagoNeto"></p>
                                         </div>
-                                        {{-- Compras --}}
                                         <div class="col">
-                                            <h4 class="text-white">Produtos:</h4>
-                                            <p class="text-white" id="totalProductos"></p>
-                                            <p class="text-white" id=""></p>
-
+                                            <h4 class="text-white">Factura: Dolar</h4>
+                                            <p class="text-white" id="facturaCodSE"></p>
+                                            <p class="text-white" id="pagoTotalSE"></p>
+                                            <p class="text-white" id="pagoImpuestoSE"></p>
+                                            <p class="text-white" id="pagoNetoSE"></p>
                                         </div>
-
                                     </div>
                                 </div>
 
@@ -322,7 +321,7 @@
                         $('#nombre').text("Nombre: " + data.nombre);
                         $('#apellido').text("Apellido: " + data.apellido);
                         $('#correo').text("Correo: " + data.correo);
-                        actualizarPrecio()
+                        montoPago();
                     }
                 });
             });
@@ -370,6 +369,8 @@
 
                         if (response.success) {
                             $('#precioTotal' + inputId).text(response.precioTnuevo);
+                            montoPago();
+
                         }
 
                         if (response.noDisponible) {
@@ -568,13 +569,30 @@
         });
 
         // Acciones
-        function actualizarPrecio() {
-            datatableFactura.rows().every(function(rowIdx, tableLoop, rowLoop) {
-                var data = this.data();
-                sumaTotal += parseFloat(data[4]);
+
+        // MontoPagar
+        function montoPago() {
+            $.ajax({
+                url: '{{ route('puntoVenta.montoPago') }}',
+                type: 'GET',
+                dataType: "json",
+                success: function(data) {
+                    if (data.success) {
+                        $('#pagoTotal').text("pago Total: $" + data.pagoTotal);
+                        $('#pagoImpuesto').text("Impuestos: " + data.pagoImpuesto);
+                        $('#pagoNeto').text("Pago Neto: $" + data.pagoNeto);
+                        $('#pagoTotalSE').text("pago Total: $" + data.pagoTotalSegundaMoneda);
+                        $('#pagoImpuestoSE').text("Impuestos: " + data.pagoImpuestoSegundaMoneda);
+                        $('#pagoNetoSE').text("Pago Neto: $" + data.pagoNetoSegundaMoneda);
+                    }
+                    if (data.error) {
+                        $('#pagoTotal').text("pago Total: $N");
+                        $('#pagoImpuesto').text("Impuestos: $N");
+                        $('#pagoNeto').text("Pago Neto: $N");
+                    }
+                }
             });
-            $('#pagoTotal').text("Pago Total: " + sumaTotal);
-        };
+        }
 
         // Agregar Product Factura
         agregarProducFactu = function(idProd) {
@@ -590,7 +608,7 @@
                 success: function(data) {
                     if (data.success) {
                         datatableFactura.ajax.reload(null, false);
-                        actualizarPrecio();
+                        montoPago();
                     } else {
                         notificacion.fire({
                             icon: "error",
@@ -626,7 +644,7 @@
                         success: function(data) {
                             if (data.success) {
                                 datatableFactura.row('#' + id).remove().draw();
-                                actualizarPrecio();
+                                montoPago();
                                 notificacion.fire({
                                     icon: "success",
                                     title: "¡ Eliminado !",

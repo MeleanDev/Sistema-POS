@@ -101,8 +101,9 @@ class PuntoVentaController extends Controller
             // Por si es mayor a una cantidad disponible en el stock
             if ($cantidad > $precio->cantidad) {
                 $respuesta = response()->json([
-                    'noDisponible' => true, 
-                    'maximo' => $precio->cantidad, 
+                    'noDisponible' => true,
+                    'maximo' => $precio->cantidad,
+                    'pagoTotal' => "No Calculable"
                 ]);
                 return $respuesta;
             }
@@ -113,7 +114,10 @@ class PuntoVentaController extends Controller
             $precioTnuevod = $cantidad * $precio->precio;
             $precioTnuevodFormateado = number_format($precioTnuevod, 2, '.', '');
 
-            $respuesta = response()->json(['success' => true, 'precioTnuevo' => $precioTnuevodFormateado]);
+            $respuesta = response()->json([
+                'success' => true,
+                'precioTnuevo' => $precioTnuevodFormateado
+            ]);
         } catch (\Throwable $th) {
             $respuesta = response()->json(['error' => true]);
         }
@@ -129,5 +133,53 @@ class PuntoVentaController extends Controller
             $respuesta = response()->json(['error' => true]);
         }
         return $respuesta;
+    }
+
+    public function montoPagos(): JsonResponse
+    {
+        try {
+            $productosFactura = PosFacturaProducto::all();
+
+            $pagoTotal = 0;
+            $porcentajeImpuesto = 0;
+            $pagoNeto = 0;
+
+            foreach ($productosFactura as $item) {
+                $producto = Producto::where('codigo', $item->idProduct)->first();
+                $pagoTotal += $item->cantidad * $producto->precio;
+            }
+
+            $pagoTotal = number_format($pagoTotal, 2, '.', '');
+
+            $pagoImpuesto = ($pagoTotal * $porcentajeImpuesto) / 100;
+            $pagoImpuesto = number_format($pagoImpuesto, 2, '.', '');
+
+            $pagoNeto = $pagoTotal + $pagoImpuesto;
+            $pagoNeto = number_format($pagoNeto, 2, '.', '');
+
+            // Calcular valores en la segunda moneda
+            $tipoCambio = 40.2;
+
+            $pagoTotalSegundaMoneda = $pagoTotal / $tipoCambio;
+            $pagoImpuestoSegundaMoneda = $pagoImpuesto / $tipoCambio;
+            $pagoNetoSegundaMoneda = $pagoNeto / $tipoCambio;
+
+            $pagoTotalSegundaMoneda = number_format($pagoTotalSegundaMoneda, 2, '.', '');
+            $pagoImpuestoSegundaMoneda = number_format($pagoImpuestoSegundaMoneda, 2, '.', '');
+            $pagoNetoSegundaMoneda = number_format($pagoNetoSegundaMoneda, 2, '.', '');
+
+            $repuesta = response()->json([
+                'success' => true,
+                'pagoTotal' => $pagoTotal,
+                'pagoImpuesto' => $pagoImpuesto,
+                'pagoNeto' => $pagoNeto,
+                'pagoTotalSegundaMoneda' => $pagoTotalSegundaMoneda,
+                'pagoImpuestoSegundaMoneda' => $pagoImpuestoSegundaMoneda,
+                'pagoNetoSegundaMoneda' => $pagoNetoSegundaMoneda,
+            ]);
+        } catch (\Throwable $th) {
+            $repuesta = response()->json(['error' => true]);
+        }
+        return $repuesta;
     }
 }
