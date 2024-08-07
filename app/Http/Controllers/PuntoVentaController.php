@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\Factura;
 use App\Models\ModoVenta;
+use App\Models\PosFacturaDato;
 use App\Models\PosFacturaProducto;
 use App\Models\Producto;
 use Illuminate\Http\JsonResponse;
@@ -47,6 +49,9 @@ class PuntoVentaController extends Controller
             ]);
         }
         $cliente = cliente::where("cedula", $cedula)->first();
+        $ingresarD = PosFacturaDato::first();
+        $ingresarD->cliente = $cedula;
+        $ingresarD->save();
         return response()->json([
             'nombre' => $cliente->nombre,
             'apellido' => $cliente->apellido,
@@ -168,6 +173,12 @@ class PuntoVentaController extends Controller
             $pagoImpuestoSegundaMoneda = number_format($pagoImpuestoSegundaMoneda, 2, '.', '');
             $pagoNetoSegundaMoneda = number_format($pagoNetoSegundaMoneda, 2, '.', '');
 
+            // Guardar Cantidad
+            $ingresarD = PosFacturaDato::first();
+            $ingresarD->pagoBS = $pagoNeto;
+            $ingresarD->pagoDolares = $pagoNetoSegundaMoneda;
+            $ingresarD->save();
+
             $repuesta = response()->json([
                 'success' => true,
                 'pagoTotal' => $pagoTotal,
@@ -181,5 +192,49 @@ class PuntoVentaController extends Controller
             $repuesta = response()->json(['error' => true]);
         }
         return $repuesta;
+    }
+
+    public function codigoFactura(Request $request): JsonResponse
+    {
+        $codigo = $request['codigo'];
+        try {
+            $usado = Factura::where('codigo', $codigo)->first();
+            if ($usado) {
+                $respuesta = response()->json(['error' => true]);
+                return $respuesta;
+            }
+            $ingresarD = PosFacturaDato::first();
+            $ingresarD->codigo = $codigo;
+            $ingresarD->save();
+            $respuesta = response()->json(['success' => true]);
+        } catch (\Throwable $th) {
+            $respuesta = response()->json(['error' => true]);
+        }
+        return $respuesta;
+    }
+
+    public function metodoPago(Request $request): JsonResponse
+    {
+        try {
+            $ingresarD = PosFacturaDato::first();
+            $ingresarD->metodoPago = $request['metodoPago'];
+            $ingresarD->save();
+            $respuesta = response()->json(['success' => true]);
+        } catch (\Throwable $th) {
+            $respuesta = response()->json(['error' => true]);
+        }
+        return $respuesta;
+    }
+
+    public function facturaDatos(): JsonResponse
+    {
+        try {
+            // $datos = PosFacturaDato::find();
+            // $cliente = Cliente::where('cedula', $datos->cedula)->first();
+            $respuesta = response()->json(['success' => true]);
+        } catch (\Throwable $th) {
+            $respuesta = response()->json(['error' => true]);
+        }
+        return $respuesta;
     }
 }

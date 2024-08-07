@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\EmpresaDato;
 use App\Models\MesCantidad;
+use App\Models\PosFacturaDato;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -50,8 +51,15 @@ class DatabaseSeeder extends Seeder
             array('mes' => 'Noviembre', 'cantidadesBS' => 0, 'cantidadesDolar' => 0, 'cantidadeTotal' => 0, 'compras' => 0),
             array('mes' => 'Diciembre', 'cantidadesBS' => 0, 'cantidadesDolar' => 0, 'cantidadeTotal' => 0, 'compras' => 0),
         ];
-
         MesCantidad::insert($data);
         
+        PosFacturaDato::create([
+            'codigo' => '',
+            'cliente' => '',
+            'pagado' => 0,
+            'metodoPago' => '',
+            'pagoDolares' => 0,
+            'pagoBS' => 0
+        ]);
     }
 }

@@ -74,11 +74,6 @@
                                         <div class="col-md-4">
                                             <div class="d-flex justify-content-center align-items-center">
                                                 <p class="h3">Cliente</p>
-                                                <div class="mx-3">
-                                                    <button class="btn bg-gradient-info btn-xs" data-bs-toggle="modal"
-                                                        data-bs-target="#cliente"><i class="fa fa-plus"
-                                                            aria-hidden="true"></i></button>
-                                                </div>
                                             </div>
 
                                             <div class="row">
@@ -120,9 +115,13 @@
                                 </div>
                                 <hr class="horizontal dark">
                                 {{-- Datos --}}
-                                <div class="bg-dark mb-3">
+                                <div class="bg-gradient-dark mb-3">
                                     <div class="d-flex justify-content-center align-items-center">
                                         <p class="h3 text-white">Informacion Factura</p>
+                                        <div class="mx-3">
+                                            <button class="btn bg-gradient-primary btn-md"
+                                                onclick="mostrarFactu()">Crear Factura</button>
+                                        </div>
                                     </div>
                                     <div class="row">
                                         {{-- Cliente --}}
@@ -149,9 +148,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-
-
                                 {{-- Productos --}}
                                 <button class="btn bg-gradient-warning btn-xs" data-bs-toggle="modal"
                                     data-bs-target="#productos"><i class="fa fa-plus"
@@ -169,6 +165,7 @@
                                             <th data-priority="2">Accion</th>
                                         </tr>
                                     </thead>
+                                    <tbody>
                                     </tbody>
                                 </table>
                             </div>
@@ -257,9 +254,6 @@
 
     <script>
         var token = $('meta[name="csrf-token"]').attr('content');
-        var sumaTotal = 0;
-        // const url = "{{ url()->full() }}";
-        // const ultimoSegmento = url.split('/').pop();
 
         const notificacion = Swal.mixin({
             toast: true,
@@ -329,22 +323,35 @@
             $('#monedaPago').on('change', function() {
                 var moneda = $(this).val();
                 if (moneda === "") {
-                    // cliente = "nada";
                     notificacion.fire({
                         icon: "question",
                         title: "¡ Debe Seleccionar un moneda de pago !",
                         text: "Selecciona una moneda de pago."
                     });
                 }
-                // $.ajax({
-                //     url: '{{ route('puntoVenta.consultaDatoCliente') }}/' + cliente,
-                //     type: 'GET',
-                //     dataType: "json",
-                //     success: function(data) {
-                //         $('#nombre').val(data.nombre + " " + data.apellido);
-                //         $('#correo').val(data.correo);
-                //     }
-                // });
+                var data = {
+                    metodoPago: moneda,
+                };
+                $.ajax({
+                    url: '{{ route('puntoVenta.metodoPago') }}',
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            notificacion.fire({
+                                icon: "error",
+                                title: "¡ No se pudo guardar la accion!",
+                                text: "No se pudo guardar la accion!"
+                            });
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error en la petición:', error);
+                    }
+                });
             });
 
             // Input cantidades producto
@@ -387,6 +394,41 @@
                     }
                 });
             });
+
+            // Input CodigoFactura
+            $(document).on('change', '#codigoFactura', function() {
+                var valor = $("#codigoFactura").val();
+
+                var data = {
+                    codigo: valor
+                };
+
+                $.ajax({
+                    url: '{{ route('puntoVenta.codigoFactura') }}',
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            notificacion.fire({
+                                icon: "error",
+                                title: "¡ Ese codigo de factura ya existe !",
+                                text: "Codigo de factura ya usado."
+                            });
+                        }
+                    },
+                    error: function(error) {
+                        notificacion.fire({
+                            icon: "error",
+                            title: "¡ Ese codigo de factura ya existe !",
+                            text: "Codigo de factura ya usado."
+                        });
+
+                    }
+                });
+            });
         });
 
         var datatableProducto = new DataTable('#datatableProducto', {
@@ -404,7 +446,8 @@
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (row.foto) {
-                            return '<img src="' + row.foto + '" width="100" height="100">';
+                            return '<img src="' + row.foto +
+                                '" width="100" height="100">';
                         } else {
                             return '<span class="text-muted">Imagen no disponible</span>';
                         }
@@ -492,7 +535,8 @@
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (row.foto) {
-                            return '<img src="' + row.foto + '" width="100" height="100">';
+                            return '<img src="' + row.foto +
+                                '" width="100" height="100">';
                         } else {
                             return '<span class="text-muted">Imagen no disponible</span>';
                         }
@@ -524,7 +568,8 @@
                     name: 'precioTotal',
                     className: 'text-center',
                     render: function(data, type, row, meta) {
-                        return '<p id="precioTotal' + row.id + '">' + row.precioTotal + '</p>';
+                        return '<p id="precioTotal' + row.id + '">' + row.precioTotal +
+                            '</p>';
                     }
                 },
                 {
@@ -581,8 +626,10 @@
                         $('#pagoTotal').text("pago Total: $" + data.pagoTotal);
                         $('#pagoImpuesto').text("Impuestos: " + data.pagoImpuesto);
                         $('#pagoNeto').text("Pago Neto: $" + data.pagoNeto);
-                        $('#pagoTotalSE').text("pago Total: $" + data.pagoTotalSegundaMoneda);
-                        $('#pagoImpuestoSE').text("Impuestos: " + data.pagoImpuestoSegundaMoneda);
+                        $('#pagoTotalSE').text("pago Total: $" + data
+                            .pagoTotalSegundaMoneda);
+                        $('#pagoImpuestoSE').text("Impuestos: " + data
+                            .pagoImpuestoSegundaMoneda);
                         $('#pagoNetoSE').text("Pago Neto: $" + data.pagoNetoSegundaMoneda);
                     }
                     if (data.error) {
@@ -662,6 +709,46 @@
                             Swal.fire({
                                 title: "Error en el sistema",
                                 text: "El Producto no fue agregado al sistema!!",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        mostrarFactu = async function() {
+            Swal.fire({
+                title: '¿ Estas seguro que desea Confirmar la compra?',
+                text: "¡ Seguro?!",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '¡ Sí, seguro !',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "",
+                        method: "post",
+                        headers: {
+                            'X-CSRF-TOKEN': token
+                        },
+                        success: function(data) {
+                            if (data.success) {
+                                // dddddddddddddddd
+                            } else {
+                                notificacion.fire({
+                                    icon: "error",
+                                    title: "¡ No se completo la factura !",
+                                    text: "Datos faltante."
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.fire({
+                                title: "Error en el sistema",
+                                text: "fallo en el sistema",
                                 icon: "error"
                             });
                         }
