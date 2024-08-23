@@ -123,7 +123,7 @@
                                                 onclick="mostrarFactu()">Crear Factura</button>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row text-center">
                                         {{-- Cliente --}}
                                         <div class="col">
                                             <h4 class="text-white">Cliente:</h4>
@@ -736,7 +736,7 @@
                         },
                         success: function(data) {
                             if (data.success) {
-                                // dddddddddddddddd
+                                
                             } else {
                                 notificacion.fire({
                                     icon: "error",

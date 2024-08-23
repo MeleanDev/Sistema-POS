@@ -16,7 +16,7 @@ class PuntoVentaController extends Controller
     public function index($codigo)
     {
         $permiso = ModoVenta::where("codigo", $codigo)->first();
-        if ($permiso == false and $permiso->estado === "Cerrado") {
+        if ($permiso == null or $permiso->estado == "Cerrado") {
             return redirect()->route('dashboard');
         }
 
